@@ -273,7 +273,7 @@ int main()
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-            particleSystem.renderParticles50(particleShader, projection, view);
+            particleSystem.renderParticles(particleShader, projection, view);
             glDisable(GL_BLEND);
         }
 
