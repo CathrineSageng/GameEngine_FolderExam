@@ -6,16 +6,10 @@ Surface::Surface(const vector<glm::vec3>& controlPoints, int widthU, int widthV,
     const vector<float>& knotU, const vector<float>& knotV)
     : controlPoints(controlPoints), widthU(widthU), widthV(widthV), knotU(knotU), knotV(knotV) {}
 
-//Denne funsjonen regner ut B-spline basesfunksjonene. 
-//i= hvilke del av sjøtevektoren som påvirker basesfunksjonen d= er graden på basisfunksjonen, 
-// t = parameteren, knots er delen av skjøtevektoren som er aktiv. 
 float Surface::BSplineBasisFunctions(int i, int d, float t, const vector<float>& knots) const 
 {
     if (i < 0 || i >= knots.size() - 1) return 0.0f;
-    //Begynner med grad 0 og undersøker som parameterverdien ligger innenfor intervallet. 
-    //Hvis t ligger innenfor intervallet, bidrar basisfunsjonen i dette intervallet. 
     if (d == 0) return (knots[i] <= t && t < knots[i + 1]) ? 1.0f : 0.0f;
-    //Lager basisfunksjoner av høyere grader, bygget på lavere grader basisfunksjoner. 
     float intervalLength1 = knots[i + d] - knots[i];
     float basisContribution1 = (intervalLength1 != 0.0f) ? (t - knots[i]) / intervalLength1 * BSplineBasisFunctions(i, d - 1, t, knots) : 0.0f;
     float intervalLength2 = knots[i + d + 1] - knots[i + 1];
@@ -23,10 +17,6 @@ float Surface::BSplineBasisFunctions(int i, int d, float t, const vector<float>&
     return basisContribution1 + basisContribution2;
 }
 
-//Denne funksjonen er viktig for utregning av normaler. 
-//Her ser man hvordan overflaten endrer seg lokalt ved å finne tangentvektoren til overflaten i u og v retning ved å kombinere basisfunksjoner og 
-//kontrollpunkter 
-//Bestemmer retningen av derivaten (true beregner derivaten med hensyn på u
 glm::vec3 Surface::calculatePartialDerivative(float u, float v, bool evaluateInUDirection) const 
 {
     glm::vec3 derivative(0.0f);
@@ -48,9 +38,6 @@ glm::vec3 Surface::calculatePartialDerivative(float u, float v, bool evaluateInU
     return derivative;
 }
 
-//Finner et punkt på B-spline overflaten ved å kombinere kontrollpunktene og basisfunksjonene 
-//Skalerer parametrene i u og v retning og iterer gjennom alle kontrollpunktene. Basisfunksjonene i u og v retning blir beregnet. 
-//Legger sammen basisfunksjoene i u og v retning og kontrollpunktene. 
 glm::vec3 Surface::calculateSurfacePoint(float u, float v) const 
 {
     glm::vec3 point(0.0f);
@@ -74,7 +61,6 @@ glm::vec3 Surface::calculateSurfacePoint(float u, float v) const
     return point;
 }
 
-//Regner ut alle punktene på en B- spline overflate og lager en vektor med liste over eller 3D punktene. 
 vector<glm::vec3> Surface::calculateSurfacePoints(int pointsOnTheSurface) const 
 {
     vector<glm::vec3> surfacePoints;
@@ -90,13 +76,9 @@ vector<glm::vec3> Surface::calculateSurfacePoints(int pointsOnTheSurface) const
     return surfacePoints;
 }
 
-//Renger ut normalvektorene på en overflate på et rutenett av punkter. Normalene regnet ut ved hjelp av funsjonen
-//calculatePartialDerivative. Normalene står vinkelrett på overflaten ved hvert punkt. 
 vector<glm::vec3> Surface::calculateSurfaceNormals(int pointsOnTheSurface) const 
 {
     vector<glm::vec3> normals;
-    //Epsilon brukes for å forskyve kantene av intervallet [0,1]. Verdiene 0 og 1 kan bli ustabil eller regnes feil fordi de kan evaluere utenfor sjøtvektorens 
-    //domene. 
     float epsilon = 0.001f; 
 
     for (int i = 0; i < pointsOnTheSurface; ++i) 
@@ -124,7 +106,6 @@ vector<glm::vec3> Surface::calculateSurfaceNormals(int pointsOnTheSurface) const
     return normals;
 }
 
-//Bregner en lise av indekser som gjør at man kan tegne et rutenett av trekanter. 
 vector<unsigned int> Surface::generateIndices(int pointsOnTheSurface) const 
 {
     vector<unsigned int> indices;
@@ -148,10 +129,9 @@ std::vector<glm::vec3> Surface::calculateBSplineCurve(const std::vector<glm::vec
     std::vector<glm::vec3> splinePoints;
 
     if (controlPoints.size() < degree + 1) {
-        return splinePoints; // Ikke nok punkter for B-spline
+        return splinePoints; 
     }
 
-    // Fjern uønskede punkter som (0,0,0)
     std::vector<glm::vec3> validControlPoints;
     for (const auto& point : controlPoints) {
         if (point != glm::vec3(0.0f, 0.0f, 0.0f)) {
@@ -160,10 +140,9 @@ std::vector<glm::vec3> Surface::calculateBSplineCurve(const std::vector<glm::vec
     }
 
     if (validControlPoints.size() < degree + 1) {
-        return splinePoints; // Ikke nok gyldige punkter
+        return splinePoints;
     }
 
-    // Fortsett som før med `validControlPoints` i stedet for `controlPoints`
     int knotCount = validControlPoints.size() + degree + 1;
     std::vector<float> knots(knotCount);
     for (int i = 0; i < knotCount; ++i) {
@@ -186,13 +165,14 @@ std::vector<glm::vec3> Surface::calculateBSplineCurve(const std::vector<glm::vec
 }
 
 void Surface::renderBSplineCurve(const std::vector<glm::vec3>& curvePoints, Shader& shader, glm::mat4& projection, glm::mat4& view) const {
-    static std::vector<float> permanentVertices; // Permanent buffer for å holde alle rendrede punkter
-    static glm::vec3 lastPoint(0.0f, 0.0f, 0.0f); // Forrige punkt
-    float pointSpacing = 0.1f; // Minimum avstand mellom prikkene
+    static std::vector<float> permanentVertices; 
+    static glm::vec3 lastPoint(0.0f, 0.0f, 0.0f); 
+    float pointSpacing = 0.1f; 
 
-    for (const auto& point : curvePoints) {
-        // Legg til punktet hvis det oppfyller avstandskravet
-        if (permanentVertices.empty() || glm::distance(lastPoint, point) >= pointSpacing) {
+    for (const auto& point : curvePoints) 
+    {
+        if (permanentVertices.empty() || glm::distance(lastPoint, point) >= pointSpacing) 
+        {
             permanentVertices.push_back(point.x);
             permanentVertices.push_back(point.y);
             permanentVertices.push_back(point.z);
@@ -201,7 +181,7 @@ void Surface::renderBSplineCurve(const std::vector<glm::vec3>& curvePoints, Shad
     }
 
     if (permanentVertices.empty()) {
-        return; // Ingenting å tegne
+        return; 
     }
 
     unsigned int VAO, VBO;
@@ -219,8 +199,8 @@ void Surface::renderBSplineCurve(const std::vector<glm::vec3>& curvePoints, Shad
     shader.setMat4("projection", projection);
     shader.setMat4("view", view);
 
-    // Tegn prikkene som punkter
-    glPointSize(5.0f); // Størrelsen på prikkene
+   
+    glPointSize(5.0f); 
     glBindVertexArray(VAO);
     glDrawArrays(GL_POINTS, 0, permanentVertices.size() / 3);
     glBindVertexArray(0);

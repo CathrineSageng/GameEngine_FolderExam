@@ -1,48 +1,78 @@
 #include "ParticleSystem.h"
-#include <cstdlib> // For random
+#include <cstdlib> 
 
-ParticleSystem::ParticleSystem(int maxParticles) : maxParticles(maxParticles) {
-    particles.reserve(maxParticles);
+ParticleSystem::ParticleSystem(int maxParticles)
+    : totalAmountOfParticles(maxParticles), howManyParticlesAreActive(0) 
+{
+    positions.resize(maxParticles);
+    velocities.resize(maxParticles);
+    activeParticles.resize(maxParticles, false);
 }
 
-void ParticleSystem::emitParticle() {
-    if (particles.size() < maxParticles) {
-        float x = static_cast<float>(rand()) / RAND_MAX * 4.0f; // Tilfeldig x mellom 0 og 3
-        float y = static_cast<float>(rand()) / RAND_MAX * 3.0f; // Tilfeldig z mellom 0 og 2
-        float z = 2.0f;
-        glm::vec3 position(x, y, z);
-        float slowFallSpeed = static_cast<float>(rand()) / RAND_MAX * 0.005f + 0.001f; // Mellom 0.005 og 0.025
-        glm::vec3 velocity(0.0f, 0.0f, -slowFallSpeed); // Øk fallhastigheten
+// Emit a new particle if the system has room
+void ParticleSystem::emitter() 
+{
+    if (howManyParticlesAreActive < totalAmountOfParticles) 
+    {
+        // Randomize position within a defined range
+        float x = static_cast<float>(rand()) / RAND_MAX * 3.0f; // x range: [0, 3]
+        float y = static_cast<float>(rand()) / RAND_MAX * 2.0f; // y range: [0, 2]
+        float z = 2.0f; // Start at a fixed height
 
-        particles.emplace_back(position, velocity);
-     
+        // Randomize slow falling velocity
+        float slowFallSpeed = static_cast<float>(rand()) / RAND_MAX * 0.005f + 0.001f;
+
+        positions[howManyParticlesAreActive] = glm::vec3(x, y, z);
+        velocities[howManyParticlesAreActive] = glm::vec3(0.0f, 0.0f, -slowFallSpeed);
+        activeParticles[howManyParticlesAreActive] = true;
+
+        howManyParticlesAreActive++;
     }
 }
 
-void ParticleSystem::update(float deltaTime, Surface& surface) {
-    for (auto& particle : particles) {
-        // Finn høyden til B-spline overflaten ved partikkelens (x, z)
-        float u = particle.position.x / 4.0f; // Skaler x til [0,1]
-        float v = particle.position.y / 3.0f; // Skaler z til [0,1]
+// Update particle positions and deactivate if they reach the surface
+void ParticleSystem::updateParticles(float deltaTime, Surface& surface) 
+{
+    for (int i = 0; i < howManyParticlesAreActive; ++i) 
+    {
+        if (!activeParticles[i]) continue;
+
+        // Calculate surface height at particle's x, y position
+        float u = positions[i].x / 3.0f;
+        float v = positions[i].y / 2.0f;
         glm::vec3 surfacePoint = surface.calculateSurfacePoint(u, v);
 
-        particle.update(deltaTime, surfacePoint.y);
+        // Apply gravity and update position
+        velocities[i].z -= 9.81f * deltaTime;
+        positions[i] += velocities[i] * deltaTime;
+
+        // Deactivate if the particle hits the ground
+        if (positions[i].z <= surfacePoint.y) 
+        {
+            positions[i].z = surfacePoint.y;
+            activeParticles[i] = false;
+        }
     }
 }
 
-void ParticleSystem::render(Shader& shader, glm::mat4& projection, glm::mat4& view) {
-    std::vector<float> vertices;
+// Render all active particles as points
+void ParticleSystem::renderParticles(Shader& shader, glm::mat4& projection, glm::mat4& view) 
+{
+    vector<float> vertices; // Collect active particle positions
 
-    for (const auto& particle : particles) {
-        if (particle.active) {
-            vertices.push_back(particle.position.x);
-            vertices.push_back(particle.position.y);
-            vertices.push_back(particle.position.z);
+    for (int i = 0; i < howManyParticlesAreActive; ++i) 
+    {
+        if (activeParticles[i]) 
+        {
+            vertices.push_back(positions[i].x);
+            vertices.push_back(positions[i].y);
+            vertices.push_back(positions[i].z);
         }
     }
 
     if (vertices.empty()) return;
 
+    // Send the particle positions to the GPU
     unsigned int VAO, VBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -57,15 +87,11 @@ void ParticleSystem::render(Shader& shader, glm::mat4& projection, glm::mat4& vi
     shader.use();
     shader.setMat4("projection", projection);
     shader.setMat4("view", view);
-    glBindVertexArray(VAO);
 
- 
-
+    glPointSize(5.0f);
     glDrawArrays(GL_POINTS, 0, vertices.size() / 3);
-    glBindVertexArray(0);
 
+    glBindVertexArray(0);
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
-   
-
 }

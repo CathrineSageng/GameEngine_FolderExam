@@ -15,8 +15,6 @@ public:
 
     void UpdateRotation(const glm::vec3& velocity, float deltaTime, bool ballsMoving);
 
-    //Stores the rotation of the ball
-    //Every ball has its own rotation
     glm::mat4 rotationMatrix = glm::mat4(1.0f);
 
 private:

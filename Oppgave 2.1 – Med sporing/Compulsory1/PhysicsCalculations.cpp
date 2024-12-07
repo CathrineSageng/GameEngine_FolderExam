@@ -11,39 +11,30 @@ void PhysicsCalculations::applyFriction(glm::vec3& velocity, const glm::vec3& po
     float normalFriction, float highFriction, float frictionAreaXMin, float frictionAreaXMax,
     float frictionAreaYMin, float frictionAreaYMax)
 {
-    // Regner ut hastigheten på vektoren og normaliserer vektoren 
     float speed = glm::length(velocity);
     glm::vec3 direction = glm::normalize(velocity);
 
-    //Normalkraften = gravitasjonen. Her er det antatt at bakken er flat 
     const float gravity = 9.81f;  
     float normalForce = gravity;  
     float frictionForce = 0.0f;
 
-    // Ser etter om ballen er innfor området med høyere friksjon
     if (position.x >= frictionAreaXMin && position.x <= frictionAreaXMax &&
         position.y >= frictionAreaYMin && position.y <= frictionAreaYMax)
     {
-        // Regner ut friksjonskrafraften i området med høyere friksjon
         frictionForce = highFriction * normalForce;
     }
     else
     {
-        // Regner ut friksjonskraften i området uten høyere friksjon 
         frictionForce = normalFriction * normalForce;
     }
 
-    // Regner ut akselerasjonen til ballene, denne er lik friksjonskraften siden massen på ballene er 1
-    // F/m=a. Regner deretter ut den nye farten til ballene 
     float frictionAcceleration = frictionForce; 
     float newSpeed = speed - frictionAcceleration * deltaTime;
 
-    // Hvis man vil ha at ballene ikke stopper i friksjonsområdet. 
-    //float minSpeed = 0.5f;
-    //if (newSpeed < minSpeed)
-    //    newSpeed = minSpeed;
+    float minSpeed = 0.5f;
+    if (newSpeed < minSpeed)
+        newSpeed = minSpeed;
 
-    // Oppdaterer både retningen og hastigheten på ballene
     velocity = direction * newSpeed;
 }
 
@@ -54,15 +45,13 @@ bool PhysicsCalculations::checkCollision(glm::vec3 posA, glm::vec3 posB, float r
 }
 
 void PhysicsCalculations::whenCollisionHappens(glm::vec3& p1, glm::vec3& v1, glm::vec3& p2, glm::vec3& v2,
-    float radius, float ballSpeed) 
+    float radius, float ballSpeed)
 {
-    //Masse for ballene er 1 
-    float m1 = 1.0f; 
-    float m2 = 1.0f; 
+    float m1 = 1.0f;
+    float m2 = 1.0f;
 
     glm::vec3 normal = glm::normalize(p1 - p2);
 
-    // Separasjon for å unngå overlapping
     float overlap = radius * 2.0f - glm::length(p1 - p2);
     if (overlap > 0.0f)
     {
@@ -71,18 +60,14 @@ void PhysicsCalculations::whenCollisionHappens(glm::vec3& p1, glm::vec3& v1, glm
         p2 -= separation;
     }
 
-    // Relativ hastighet
     glm::vec3 relativeVelocity = v1 - v2;
 
-    // Hastighetskomponent langs normalen
     float velocityAlongNormal = glm::dot(relativeVelocity, normal);
 
-    // Ballene beveger seg bort fra hverandre
     if (velocityAlongNormal > 0)
         return;
 
-    // Impulsberegning
-    float e = 1.0f; // Perfekt elastisk kollisjon
+    float e = 1.0f; 
     float j = -(1 + e) * velocityAlongNormal / (1.0f / m1 + 1.0f / m2);
 
     glm::vec3 impulse = j * normal;
@@ -90,10 +75,13 @@ void PhysicsCalculations::whenCollisionHappens(glm::vec3& p1, glm::vec3& v1, glm
     v1 += impulse / m1;
     v2 -= impulse / m2;
 
-    // Normaliser hastighetene til konstant verdi
-    v1 = glm::normalize(v1) * ballSpeed;
-    v2 = glm::normalize(v2) * ballSpeed;
+    float speed1 = glm::length(v1);
+    float speed2 = glm::length(v2);
+
+    v1 = glm::normalize(v1) * speed1;
+    v2 = glm::normalize(v2) * speed2;
 }
+
 
 void PhysicsCalculations::updatePhysics(vector<glm::vec3>& ballPositions, vector<glm::vec3>& ballVelocities,
     vector<vector<glm::vec3>>& ballTrack, Octree& octree,
