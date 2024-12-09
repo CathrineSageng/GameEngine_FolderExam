@@ -140,13 +140,15 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Octree.cpp" />
     <ClCompile Include="ParticleSystem.cpp" />
-    <ClCompile Include="PhysicsCalculations.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Surface.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Ball.h" />
+    <ClInclude Include="BallTrackingSystem.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="CollisionSystem.h" />
+    <ClInclude Include="Components.h" />
     <ClInclude Include="dependencies\include\glad\glad.h" />
     <ClInclude Include="dependencies\include\GLFW\glfw3.h" />
     <ClInclude Include="dependencies\include\GLFW\glfw3native.h" />
@@ -434,9 +436,12 @@
     <ClInclude Include="dependencies\include\glm\vector_relational.hpp" />
     <ClInclude Include="dependencies\include\KHR\khrplatform.h" />
     <ClInclude Include="dependencies\include\stb\stb_image.h" />
+    <ClInclude Include="Entity.h" />
+    <ClInclude Include="EntityManager.h" />
+    <ClInclude Include="FrictionSystem.h" />
     <ClInclude Include="Octree.h" />
     <ClInclude Include="ParticleSystem.h" />
-    <ClInclude Include="PhysicsCalculations.h" />
+    <ClInclude Include="PositionSystem.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Surface.h" />
   </ItemGroup>

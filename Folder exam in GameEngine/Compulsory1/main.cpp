@@ -8,14 +8,18 @@
 #include <vector>
 #include "Camera.h"
 #include "Ball.h"
-#include "PhysicsCalculations.h"
 #include "ParticleSystem.h"
+#include "CollisionSystem.h"
+#include "FrictionSystem.h"
+#include "PositionSystem.h"
+#include "EntityManager.h"
+#include "BallTrackingSystem.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
 using namespace std;
-//---------------------GLOBALE VARIABLER----------------------------------------------------------------------------------------------------------------//
+//-----------------------------------------------------------------------------------------------------------------------------------------------------//
 const unsigned int SCR_WIDTH = 1600;
 const unsigned int SCR_HEIGHT = 1200;
 
@@ -60,7 +64,7 @@ vector<glm::vec3> controlPoints =
 vector<float> knotVectorU = { 0, 0, 0, 1, 2, 2, 2 }; 
 vector<float> knotVectorV = { 0, 0, 0, 1, 1, 1 };
 
-//-------------FUNKSJONER---------------------------------------------------------------------------------------------------------------------------//
+//------------------------------------------------------------------------------------------------------------------------------------------------//
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -70,7 +74,7 @@ unsigned int loadTexture(const char* path);
 void selectStartPointForBall(Surface& surface, glm::vec3& ballPosition, float xMin, float xMax, float yMin, float yMax, float ballRadius);
 
 
-//------------MAIN------------------------------------------------------------------------------------------------------------------------------//
+//-----------------------------------------------------------------------------------------------------------------------------------------------//
 
 int main()
 {
@@ -104,26 +108,33 @@ int main()
     Shader particleShader("particle.vert", "particle.frag");
 
     ParticleSystem particleSystem(50000);
-    Surface surface(controlPoints, 4, 3, knotVectorU, knotVectorV); 
-    Octree octree(glm::vec3(xMin, yMin, xMin), glm::vec3(xMax, yMax, xMax), 0, 4, 4);
-    PhysicsCalculations physics(xMin, xMax, yMin, yMax, ballRadius);
+    EntityManager entityManager;
+    PositionSystem positionSystem;
+    FrictionSystem frictionSystem;
+    CollisionSystem  collisionSystem;
+    BallTrackingSystem ballTrackingSystem;
+    Octree octree(glm::vec3(xMin, yMin, xMin), glm::vec3(xMax, yMax, xMax));
 
+    Surface surface(controlPoints, 4, 3, knotVectorU, knotVectorV); 
+ 
     vector<glm::vec3> ballPositions = {
     {0.0f, 0.0f, 0.1f}, {1.0f, 0.0f, 0.1f}, {2.0f, 0.0f, 0.1f}, {3.0f, 0.0f, 0.1f}, 
     {0.0f, 1.0f, 0.1f}, {1.0f, 1.0f, 0.5f}, {2.0f, 1.0f, 0.5f}, {3.0f, 1.0f, 0.1f}, 
     {0.0f, 2.0f, 0.1f}, {1.0f, 2.0f, 0.1f}, {2.0f, 2.0f, 0.1f}, {3.0f, 2.0f, 0.1f}};
 
     vector<glm::vec3> ballVelocities = {
-    {4.0f, 1.0f, 0.0f}, {3.0f, 2.0f, 0.0f}, {-2.0f, 1.0f, 0.0f}, {-4.0f, 1.0f, 0.0f},
-    {3.0f, -1.0f, 0.0f}, {-1.0f, -1.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {-2.0f, 3.0f, 0.0f}, 
-    {4.0f, -2.0f, 0.0f}, {3.0f, -3.0f, 0.0f}, {-1.0f, -1.0f, 0.0f}, {-4.0f, -2.0f, 0.0f}};
+    {1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {-1.0f, 1.0f, 0.0f}, {-1.0f, 1.0f, 0.0f},
+    {1.0f, -1.0f, 0.0f}, {-1.0f, -1.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {-1.0f, 1.0f, 0.0f}, 
+    {1.0f, -1.0f, 0.0f}, {1.0f, -1.0f, 0.0f}, {-1.0f, -1.0f, 0.0f}, {-1.0f, -1.0f, 0.0f}};
 
-    vector<vector<glm::vec3>> ballTrack(ballPositions.size());
     vector<Ball> balls;
-    for (int i = 0; i < ballPositions.size(); ++i) 
-    {
-        balls.push_back(Ball(ballRadius, 30, 30, glm::vec3(1.0f, 1.0f, 1.0f)));
+
+    for (size_t i = 0; i < ballPositions.size(); ++i) {
+        balls.push_back(Ball(ballRadius, 30, 30, glm::vec3(1.0f, 1.0f, 1.0f))); // Add a Ball object
     }
+
+    for (size_t i = 0; i < ballPositions.size(); ++i)
+        entityManager.createEntity(ballPositions[i], ballVelocities[i], ballRadius);
 
     int pointsOnTheSurface = 20;
 
@@ -131,23 +142,6 @@ int main()
     surface.setupBuffers(surfaceVAO, surfaceVBO, colorVBO, normalVBO, EBO, normalVAO, normalLineVBO,
         pointsOnTheSurface, frictionAreaXMin, frictionAreaXMax,
         frictionAreaYMin, frictionAreaYMax);
-
-    physics.updatePhysics(ballPositions, ballVelocities, ballTrack, octree, ballsMoving,
-        fixedTimeStep, ballRadius, xMin, xMax, yMin, yMax, surface,
-        normalFriction, highFriction, frictionAreaXMin, frictionAreaXMax,
-        frictionAreaYMin, frictionAreaYMax);
-
-
-
-    //cout << "Koordinatgrenser for flaten:"<< endl;
-    //cout << "x: [" << xMin << ", " << xMax << "]"<<endl;
-    //cout << "y: [" << yMin << ", " << yMax << "]"<<endl;
-
-    //for (int i = 0; i < ballPositions.size(); ++i) 
-    //{
-    //    cout << "Velg posisjon for ball " << i + 1 << ":"<<endl;
-    //    selectStartPointForBall(surface, ballPositions[i], xMin, xMax, yMin, yMax, ballRadius);
-    //}
 
     unsigned int diffuseMap1 = loadTexture("Textures/ball.jpg");
     unsigned int specularMap = loadTexture("Textures/ball2.jpg");
@@ -195,14 +189,15 @@ int main()
         glDrawElements(GL_TRIANGLES, pointsOnTheSurface * pointsOnTheSurface * 6, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
 
-        for (int i = 0; i < ballTrack.size(); ++i) 
-        {
-            if (ballTrack[i].size() > 1) 
+        for (size_t i = 0; i < entityManager.tracks.size(); ++i) {
+            const std::vector<glm::vec3>& ballTrack = entityManager.tracks[i].track;
+            if (ballTrack.size() > 1) 
             {
-                auto curvePoints = surface.calculateBSplineCurve(ballTrack[i], 3, 50);
+                auto curvePoints = surface.calculateBSplineCurve(ballTrack, 3, 50);
                 surface.renderBSplineCurve(curvePoints, phongShader, projection, view);
             }
         }
+        ballTrackingSystem.update(entityManager.positions, entityManager.tracks, 0.01f);
 
         textureShader.use();
         textureShader.setVec3("light.position", sunPos);
@@ -217,36 +212,51 @@ int main()
         textureShader.setMat4("projection", projection);
         textureShader.setMat4("view", view);
 
+ 
         accumulator += deltaTime;
         while (accumulator >= fixedTimeStep)
         {
-            physics.updatePhysics(
-                ballPositions,          
-                ballVelocities,         
-                ballTrack,           
-                octree,                
-                ballsMoving,     
-                fixedTimeStep,        
-                ballRadius,             
-                xMin, xMax, yMin, yMax, 
-                surface,                
-                normalFriction,         
-                highFriction,          
-                frictionAreaXMin, frictionAreaXMax, 
-                frictionAreaYMin, frictionAreaYMax  
-            );
+            if (ballsMoving)
+            {
+                positionSystem.update(entityManager.positions,
+                    entityManager.velocities,
+                    fixedTimeStep,
+                    xMin, xMax, yMin, yMax,
+                    ballRadius, surface);
+                frictionSystem.applyFriction(entityManager.velocities, entityManager.positions,
+                    fixedTimeStep, normalFriction, highFriction,
+                    frictionAreaXMin, frictionAreaXMax,
+                    frictionAreaYMin, frictionAreaYMax);
+
+                octree = Octree(glm::vec3(xMin, yMin, xMin), glm::vec3(xMax, yMax, xMax));
+      
+                std::vector<glm::vec3> positionVec(entityManager.positions.size());
+                for (size_t i = 0; i < entityManager.positions.size(); ++i) 
+                {
+                    positionVec[i] = entityManager.positions[i].position;
+                }
+
+                for (size_t i = 0; i < positionVec.size(); ++i) 
+                {
+                    octree.insert(i, positionVec, ballRadius);
+                }
+
+                collisionSystem.handleCollisions(entityManager.positions, entityManager.velocities, entityManager.radii, octree);
+            }
             accumulator -= fixedTimeStep;
         }
 
+        accumulator += deltaTime;
+     
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuseMap1);
 
-        for (int i = 0; i < ballPositions.size(); ++i)
+        for (size_t i = 0; i < entityManager.positions.size(); ++i) 
         {
-            balls[i].UpdateRotation(ballVelocities[i], deltaTime, ballsMoving);
+            balls[i].UpdateRotation(entityManager.velocities[i].velocity, deltaTime, ballsMoving);
             model = glm::mat4(1.0f);
-            model = glm::translate(model, ballPositions[i]);
-            model = model * balls[i].rotationMatrix;
+            model = glm::translate(model, entityManager.positions[i].position);
+            model = model * balls[i].rotationMatrix; 
             textureShader.setMat4("model", model);
             balls[i].DrawBall();
         }

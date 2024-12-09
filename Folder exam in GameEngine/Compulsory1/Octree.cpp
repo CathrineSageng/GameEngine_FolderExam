@@ -31,6 +31,7 @@ bool Octree::isLeaf()
 
 void Octree::insert(int ballIndex, const vector<glm::vec3>& ballPositions, float ballRadius)
 {
+
     glm::vec3 pos = ballPositions[ballIndex];
 
     if (isLeaf() && (balls.size() < maxObjects or maxDepth == 0))
