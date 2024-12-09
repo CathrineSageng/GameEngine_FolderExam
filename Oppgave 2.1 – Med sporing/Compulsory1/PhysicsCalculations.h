@@ -3,7 +3,6 @@
 
 #include <glm/glm.hpp>
 #include <vector>
-#include "Octree.h"
 #include "Surface.h"
 
 class PhysicsCalculations 

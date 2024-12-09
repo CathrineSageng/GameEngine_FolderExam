@@ -6,12 +6,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
-#include "Shader.h"
-#include "ShaderFileLoader.h"
 #include "Camera.h"
-#include "Surface.h"
 #include "Ball.h"
-#include "Octree.h"
 #include "PhysicsCalculations.h"
 #include "ParticleSystem.h"
 
@@ -73,16 +69,6 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 unsigned int loadTexture(const char* path);
 void selectStartPointForBall(Surface& surface, glm::vec3& ballPosition, float xMin, float xMax, float yMin, float yMax, float ballRadius);
 
-//----------------SHADERS------------------------------------------------------------------------------------------------------------------------//
-
-string vfsp = ShaderLoader::LoadShaderFromFile("phong.vert");
-string fsp = ShaderLoader::LoadShaderFromFile("phong.frag");
-
-string vfsT = ShaderLoader::LoadShaderFromFile("Texture.vs");
-string fsT = ShaderLoader::LoadShaderFromFile("Texture.fs");
-
-string vfss = ShaderLoader::LoadShaderFromFile("particle.vert");
-string fss = ShaderLoader::LoadShaderFromFile("particle.frag");
 
 //------------MAIN------------------------------------------------------------------------------------------------------------------------------//
 
@@ -122,8 +108,16 @@ int main()
     Octree octree(glm::vec3(xMin, yMin, xMin), glm::vec3(xMax, yMax, xMax), 0, 4, 4);
     PhysicsCalculations physics(xMin, xMax, yMin, yMax, ballRadius);
 
-    vector<glm::vec3> ballPositions = { {0.0f, 0.0f, 0.1f}, {3.0f, 2.0f, 0.1f}, { 0.0f, 2.0f, 0.1f }, {3.0f, 0.0f, 0.1f} };
-    vector<glm::vec3> ballVelocities = { {4.0f, -1.0f, 0.0f}, {-4.0f, -1.0f, 0.0f}, {4.0f, 1.0f, 0.0f}, {-4.0f, 1.0f, 0.0f} };
+    vector<glm::vec3> ballPositions = {
+    {0.0f, 0.0f, 0.1f}, {1.0f, 0.0f, 0.1f}, {2.0f, 0.0f, 0.1f}, {3.0f, 0.0f, 0.1f}, 
+    {0.0f, 1.0f, 0.1f}, {1.0f, 1.0f, 0.5f}, {2.0f, 1.0f, 0.5f}, {3.0f, 1.0f, 0.1f}, 
+    {0.0f, 2.0f, 0.1f}, {1.0f, 2.0f, 0.1f}, {2.0f, 2.0f, 0.1f}, {3.0f, 2.0f, 0.1f}};
+
+    vector<glm::vec3> ballVelocities = {
+    {4.0f, 1.0f, 0.0f}, {3.0f, 2.0f, 0.0f}, {-2.0f, 1.0f, 0.0f}, {-4.0f, 1.0f, 0.0f},
+    {3.0f, -1.0f, 0.0f}, {-1.0f, -1.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {-2.0f, 3.0f, 0.0f}, 
+    {4.0f, -2.0f, 0.0f}, {3.0f, -3.0f, 0.0f}, {-1.0f, -1.0f, 0.0f}, {-4.0f, -2.0f, 0.0f}};
+
     vector<vector<glm::vec3>> ballTrack(ballPositions.size());
     vector<Ball> balls;
     for (int i = 0; i < ballPositions.size(); ++i) 
@@ -143,15 +137,17 @@ int main()
         normalFriction, highFriction, frictionAreaXMin, frictionAreaXMax,
         frictionAreaYMin, frictionAreaYMax);
 
-    cout << "Koordinatgrenser for flaten:"<< endl;
-    cout << "x: [" << xMin << ", " << xMax << "]"<<endl;
-    cout << "y: [" << yMin << ", " << yMax << "]"<<endl;
 
-    for (int i = 0; i < ballPositions.size(); ++i) 
-    {
-        cout << "Velg posisjon for ball " << i + 1 << ":"<<endl;
-        selectStartPointForBall(surface, ballPositions[i], xMin, xMax, yMin, yMax, ballRadius);
-    }
+
+    //cout << "Koordinatgrenser for flaten:"<< endl;
+    //cout << "x: [" << xMin << ", " << xMax << "]"<<endl;
+    //cout << "y: [" << yMin << ", " << yMax << "]"<<endl;
+
+    //for (int i = 0; i < ballPositions.size(); ++i) 
+    //{
+    //    cout << "Velg posisjon for ball " << i + 1 << ":"<<endl;
+    //    selectStartPointForBall(surface, ballPositions[i], xMin, xMax, yMin, yMax, ballRadius);
+    //}
 
     unsigned int diffuseMap1 = loadTexture("Textures/ball.jpg");
     unsigned int specularMap = loadTexture("Textures/ball2.jpg");

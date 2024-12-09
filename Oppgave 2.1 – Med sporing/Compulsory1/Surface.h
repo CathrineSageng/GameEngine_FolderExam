@@ -6,6 +6,7 @@
 #include <vector>
 #include <glad/glad.h>
 #include "Shader.h"
+#include "Octree.h"
 
 using namespace std;
 

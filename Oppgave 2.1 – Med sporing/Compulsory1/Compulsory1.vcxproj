@@ -142,7 +142,6 @@
     <ClCompile Include="ParticleSystem.cpp" />
     <ClCompile Include="PhysicsCalculations.cpp" />
     <ClCompile Include="Shader.cpp" />
-    <ClCompile Include="ShaderFileLoader.cpp" />
     <ClCompile Include="Surface.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -439,7 +438,6 @@
     <ClInclude Include="ParticleSystem.h" />
     <ClInclude Include="PhysicsCalculations.h" />
     <ClInclude Include="Shader.h" />
-    <ClInclude Include="ShaderFileLoader.h" />
     <ClInclude Include="Surface.h" />
   </ItemGroup>
   <ItemGroup>

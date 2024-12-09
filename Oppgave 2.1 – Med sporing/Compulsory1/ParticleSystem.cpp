@@ -4,75 +4,66 @@
 ParticleSystem::ParticleSystem(int maxParticles)
     : totalAmountOfParticles(maxParticles), howManyParticlesAreActive(0) 
 {
-    positions.resize(maxParticles);
-    velocities.resize(maxParticles);
+    position.resize(maxParticles);
+    velocity.resize(maxParticles);
     activeParticles.resize(maxParticles, false);
 }
 
-// Emit a new particle if the system has room
 void ParticleSystem::emitter() 
 {
     if (howManyParticlesAreActive < totalAmountOfParticles) 
     {
-        // Randomize position within a defined range
-        float x = static_cast<float>(rand()) / RAND_MAX * 3.0f; // x range: [0, 3]
-        float y = static_cast<float>(rand()) / RAND_MAX * 2.0f; // y range: [0, 2]
-        float z = 2.0f; // Start at a fixed height
+        float x = static_cast<float>(rand()) / RAND_MAX * 3.0f; 
+        float y = static_cast<float>(rand()) / RAND_MAX * 2.0f;
+        float z = 2.0f; 
 
-        // Randomize slow falling velocity
         float slowFallSpeed = static_cast<float>(rand()) / RAND_MAX * 0.005f + 0.001f;
 
-        positions[howManyParticlesAreActive] = glm::vec3(x, y, z);
-        velocities[howManyParticlesAreActive] = glm::vec3(0.0f, 0.0f, -slowFallSpeed);
+        position[howManyParticlesAreActive] = glm::vec3(x, y, z);
+        velocity[howManyParticlesAreActive] = glm::vec3(0.0f, 0.0f, -slowFallSpeed);
         activeParticles[howManyParticlesAreActive] = true;
 
         howManyParticlesAreActive++;
     }
 }
 
-// Update particle positions and deactivate if they reach the surface
 void ParticleSystem::updateParticles(float deltaTime, Surface& surface) 
 {
     for (int i = 0; i < howManyParticlesAreActive; ++i) 
     {
         if (!activeParticles[i]) continue;
 
-        // Calculate surface height at particle's x, y position
-        float u = positions[i].x / 3.0f;
-        float v = positions[i].y / 2.0f;
+        float u = position[i].x / 3.0f;
+        float v = position[i].y / 2.0f;
         glm::vec3 surfacePoint = surface.calculateSurfacePoint(u, v);
 
-        // Apply gravity and update position
-        velocities[i].z -= 9.81f * deltaTime;
-        positions[i] += velocities[i] * deltaTime;
+        velocity[i].z -= 9.81f * deltaTime;
+        position[i] += velocity[i] * deltaTime;
 
-        // Deactivate if the particle hits the ground
-        if (positions[i].z <= surfacePoint.y) 
+        if (position[i].z <= surfacePoint.y) 
         {
-            positions[i].z = surfacePoint.y;
+            position[i].z = surfacePoint.y;
             activeParticles[i] = false;
         }
     }
 }
 
-// Render all active particles as points
 void ParticleSystem::renderParticles(Shader& shader, glm::mat4& projection, glm::mat4& view) 
 {
-    vector<float> vertices; // Collect active particle positions
+    vector<float> vertices;
 
     for (int i = 0; i < howManyParticlesAreActive; ++i) 
     {
         if (activeParticles[i]) 
         {
-            vertices.push_back(positions[i].x);
-            vertices.push_back(positions[i].y);
-            vertices.push_back(positions[i].z);
+            vertices.push_back(position[i].x);
+            vertices.push_back(position[i].y);
+            vertices.push_back(position[i].z);
         }
     }
 
     if (vertices.empty()) return;
 
-    // Send the particle positions to the GPU
     unsigned int VAO, VBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);

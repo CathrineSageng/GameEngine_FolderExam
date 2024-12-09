@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <glm/glm.hpp>
-#include "Shader.h"
 #include "Surface.h"
 
 using namespace std; 
@@ -12,19 +11,17 @@ class ParticleSystem {
 public:
     ParticleSystem(int maxParticles);
 
-    void emitter(); // Add new particles
-    void updateParticles(float deltaTime, Surface& surface); // Update particle positions
-    void renderParticles(Shader& shader, glm::mat4& projection, glm::mat4& view); // Render particles
+    void emitter();
+    void updateParticles(float deltaTime, Surface& surface); 
+    void renderParticles(Shader& shader, glm::mat4& projection, glm::mat4& view); 
 
-private:
     int totalAmountOfParticles;
 
-    // Particle data stored in a struct-of-arrays (SoA) format
-    vector<glm::vec3> positions; // Positions of particles
-    vector<glm::vec3> velocities; // Velocities of particles
-    vector<bool> activeParticles; // Active state of each particle
+    vector<glm::vec3> position; 
+    vector<glm::vec3> velocity;
+    vector<bool> activeParticles; 
 
-    int howManyParticlesAreActive; // Tracks how many particles are active
+    int howManyParticlesAreActive; 
 };
 
 #endif

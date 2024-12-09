@@ -93,6 +93,8 @@ void PhysicsCalculations::updatePhysics(vector<glm::vec3>& ballPositions, vector
     if (!ballsMoving)
         return;
 
+    //cout << "--- Updating Physics ---"<<endl;
+
     octree = Octree(glm::vec3(xMin, yMin, xMin), glm::vec3(xMax, yMax, xMax), 0, 4, 4);
 
     for (int i = 0; i < ballPositions.size(); ++i) {
@@ -125,10 +127,14 @@ void PhysicsCalculations::updatePhysics(vector<glm::vec3>& ballPositions, vector
     vector<pair<int, int>> potentialCollisions;
     octree.getPotentialCollisions(potentialCollisions, ballPositions, ballRadius);
 
+ 
     for (const auto& pair : potentialCollisions)
     {
         if (checkCollision(ballPositions[pair.first], ballPositions[pair.second], ballRadius, ballRadius))
         {
+     /*       cout << "Collision detected between ball " << pair.first
+                << " and ball " << pair.second <<endl;*/
+
             whenCollisionHappens(ballPositions[pair.first], ballVelocities[pair.first],
                 ballPositions[pair.second], ballVelocities[pair.second], ballRadius, 2.5f);
         }
