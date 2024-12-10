@@ -439,6 +439,11 @@
     <ClInclude Include="Entity.h" />
     <ClInclude Include="EntityManager.h" />
     <ClInclude Include="FrictionSystem.h" />
+    <ClInclude Include="Lua\Lua\include\lauxlib.h" />
+    <ClInclude Include="Lua\Lua\include\lua.h" />
+    <ClInclude Include="Lua\Lua\include\lua.hpp" />
+    <ClInclude Include="Lua\Lua\include\luaconf.h" />
+    <ClInclude Include="Lua\Lua\include\lualib.h" />
     <ClInclude Include="Octree.h" />
     <ClInclude Include="ParticleSystem.h" />
     <ClInclude Include="PositionSystem.h" />
@@ -582,6 +587,8 @@
     <None Include="dependencies\include\glm\gtx\vector_angle.inl" />
     <None Include="dependencies\include\glm\gtx\vector_query.inl" />
     <None Include="dependencies\include\glm\gtx\wrap.inl" />
+    <None Include="entities.lua" />
+    <None Include="lua54.dll" />
     <None Include="particle.frag" />
     <None Include="particle.vert" />
     <None Include="phong.frag" />
@@ -591,6 +598,7 @@
   </ItemGroup>
   <ItemGroup>
     <Library Include="dependencies\lib\glfw3.lib" />
+    <Library Include="Lua\Lua\lua54.lib" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="dependencies\include\glm\CMakeLists.txt" />

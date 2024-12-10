@@ -15,6 +15,17 @@
 #include "EntityManager.h"
 #include "BallTrackingSystem.h"
 
+extern "C"
+{
+ #include "Lua/Lua/include/lua.h"
+#include "Lua/Lua/include/lauxlib.h"
+#include "Lua/Lua/include/lualib.h"
+}
+
+#ifdef _WIN32
+#pragma comment(lib, "Lua/Lua/lua54.lib")
+#endif
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
@@ -53,7 +64,7 @@ float normalFriction = 0.01f;
 float highFriction = 0.5f; 
 
 glm::vec3 sunPos(2.0f, 2.0f, 2.0f);
- 
+
 vector<glm::vec3> controlPoints = 
 {
     glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(2.0f, 0.0f, 0.0f), glm::vec3(3.0f, 0.0f, 0.0f),
@@ -72,12 +83,22 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 unsigned int loadTexture(const char* path);
 void selectStartPointForBall(Surface& surface, glm::vec3& ballPosition, float xMin, float xMax, float yMin, float yMax, float ballRadius);
-
+void loadEntities(lua_State* L, EntityManager& entityManager);
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------//
 
 int main()
 {
+//----------------------------------------------------------------------------------------------------------------------------------------------//
+    lua_State* L = luaL_newstate();
+    luaL_openlibs(L);
+
+    EntityManager entityManager;
+    loadEntities(L, entityManager);
+
+    lua_close(L);
+//----------------------------------------------------------------------------------------------------------------------------------------------//
+
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -103,12 +124,13 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
 
+//--------------------------------------------------------------------------------------------------------------------------------------------------------------//
+
     Shader phongShader("phong.vert", "phong.frag");
     Shader textureShader("Texture.vs", "Texture.fs");
     Shader particleShader("particle.vert", "particle.frag");
 
     ParticleSystem particleSystem(50000);
-    EntityManager entityManager;
     PositionSystem positionSystem;
     FrictionSystem frictionSystem;
     CollisionSystem  collisionSystem;
@@ -116,24 +138,10 @@ int main()
     Octree octree(glm::vec3(xMin, yMin, xMin), glm::vec3(xMax, yMax, xMax));
     Surface surface(controlPoints, 4, 3, knotVectorU, knotVectorV); 
  
-    vector<glm::vec3> ballPositions = {
-    {0.0f, 0.0f, 0.1f}, {1.0f, 0.0f, 0.1f}, {2.0f, 0.0f, 0.1f}, {3.0f, 0.0f, 0.1f}, 
-    {0.0f, 1.0f, 0.1f}, {1.0f, 1.0f, 0.5f}, {2.0f, 1.0f, 0.5f}, {3.0f, 1.0f, 0.1f}, 
-    {0.0f, 2.0f, 0.1f}, {1.0f, 2.0f, 0.1f}, {2.0f, 2.0f, 0.1f}, {3.0f, 2.0f, 0.1f}};
-
-    vector<glm::vec3> ballVelocities = {
-    {1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {-1.0f, 1.0f, 0.0f}, {-1.0f, 1.0f, 0.0f},
-    {1.0f, -1.0f, 0.0f}, {-1.0f, -1.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {-1.0f, 1.0f, 0.0f}, 
-    {1.0f, -1.0f, 0.0f}, {1.0f, -1.0f, 0.0f}, {-1.0f, -1.0f, 0.0f}, {-1.0f, -1.0f, 0.0f}};
-
     vector<Ball> balls;
-
-    for (size_t i = 0; i < ballPositions.size(); ++i) {
-        balls.push_back(Ball(ballRadius, 30, 30, glm::vec3(1.0f, 1.0f, 1.0f))); // Add a Ball object
+    for (size_t i = 0; i < entityManager.positions.size(); ++i) {
+        balls.push_back(Ball(ballRadius, 30, 30, glm::vec3(1.0f, 1.0f, 1.0f))); 
     }
-
-    for (size_t i = 0; i < ballPositions.size(); ++i)
-        entityManager.createEntity(ballPositions[i], ballVelocities[i], ballRadius);
 
     int pointsOnTheSurface = 20;
 
@@ -148,6 +156,8 @@ int main()
     textureShader.use();
     textureShader.setInt("material.diffuse", 0);
     textureShader.setInt("material.specular", 1);
+
+//--------------------------------------------------------------------------------------------------------------------------------------------------------//
 
     while (!glfwWindowShouldClose(window))
     {
@@ -292,6 +302,54 @@ int main()
 }
 
 //----------FUNKSJONER-----------------------------------------------------------------------------------------------------------------//
+
+void loadEntities(lua_State* L, EntityManager& entityManager) 
+{
+    if (luaL_dofile(L, "entities.lua") != LUA_OK) 
+    {
+        cerr << "Error loading Lua script: " << lua_tostring(L, -1) <<endl;
+        return;
+    }
+
+    lua_getglobal(L, "entities");
+    if (!lua_istable(L, -1)) 
+    {
+        cerr << "Error: 'entities' is not a table" << endl;
+        return;
+    }
+
+    lua_pushnil(L); 
+    while (lua_next(L, -2) != 0) 
+    {
+        lua_getfield(L, -1, "position");
+        glm::vec3 position(0.0f);
+        if (lua_istable(L, -1)) {
+            lua_getfield(L, -1, "x"); position.x = (float)lua_tonumber(L, -1); lua_pop(L, 1);
+            lua_getfield(L, -1, "y"); position.y = (float)lua_tonumber(L, -1); lua_pop(L, 1);
+            lua_getfield(L, -1, "z"); position.z = (float)lua_tonumber(L, -1); lua_pop(L, 1);
+        }
+        lua_pop(L, 1); 
+
+        lua_getfield(L, -1, "velocity");
+        glm::vec3 velocity(0.0f);
+        if (lua_istable(L, -1)) {
+            lua_getfield(L, -1, "x"); velocity.x = (float)lua_tonumber(L, -1); lua_pop(L, 1);
+            lua_getfield(L, -1, "y"); velocity.y = (float)lua_tonumber(L, -1); lua_pop(L, 1);
+            lua_getfield(L, -1, "z"); velocity.z = (float)lua_tonumber(L, -1); lua_pop(L, 1);
+        }
+        lua_pop(L, 1);
+
+        lua_getfield(L, -1, "radius");
+        float radius = (float)lua_tonumber(L, -1);
+        lua_pop(L, 1); 
+
+        entityManager.createEntity(position, velocity, radius);
+
+        lua_pop(L, 1); 
+    }
+
+    lua_pop(L, 1); 
+}
 
 void processInput(GLFWwindow* window)
 {
