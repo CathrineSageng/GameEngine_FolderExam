@@ -83,7 +83,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Spline-kurver", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Folder exam", NULL, NULL);
     if (window == NULL)
     {
         cout << "Failed to create GLFW window" <<endl;
@@ -114,7 +114,6 @@ int main()
     CollisionSystem  collisionSystem;
     BallTrackingSystem ballTrackingSystem;
     Octree octree(glm::vec3(xMin, yMin, xMin), glm::vec3(xMax, yMax, xMax));
-
     Surface surface(controlPoints, 4, 3, knotVectorU, knotVectorV); 
  
     vector<glm::vec3> ballPositions = {
@@ -191,7 +190,7 @@ int main()
 
         for (size_t i = 0; i < entityManager.tracks.size(); ++i) 
         {
-            const std::vector<glm::vec3>& ballTrack = entityManager.tracks[i].track;
+            const vector<glm::vec3>& ballTrack = entityManager.tracks[i].track;
             if (ballTrack.size() > 1) 
             {
                 auto curvePoints = surface.calculateBSplineCurve(ballTrack, 3, 50);
