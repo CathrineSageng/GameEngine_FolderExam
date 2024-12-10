@@ -189,7 +189,8 @@ int main()
         glDrawElements(GL_TRIANGLES, pointsOnTheSurface * pointsOnTheSurface * 6, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
 
-        for (size_t i = 0; i < entityManager.tracks.size(); ++i) {
+        for (size_t i = 0; i < entityManager.tracks.size(); ++i) 
+        {
             const std::vector<glm::vec3>& ballTrack = entityManager.tracks[i].track;
             if (ballTrack.size() > 1) 
             {
@@ -212,12 +213,12 @@ int main()
         textureShader.setMat4("projection", projection);
         textureShader.setMat4("view", view);
 
- 
         accumulator += deltaTime;
         while (accumulator >= fixedTimeStep)
         {
             if (ballsMoving)
             {
+               /* cout << "--- Updating Physics ---" << endl;*/
                 positionSystem.update(entityManager.positions,
                     entityManager.velocities,
                     fixedTimeStep,
@@ -230,7 +231,7 @@ int main()
 
                 octree = Octree(glm::vec3(xMin, yMin, xMin), glm::vec3(xMax, yMax, xMax));
       
-                std::vector<glm::vec3> positionVec(entityManager.positions.size());
+                vector<glm::vec3> positionVec(entityManager.positions.size());
                 for (size_t i = 0; i < entityManager.positions.size(); ++i) 
                 {
                     positionVec[i] = entityManager.positions[i].position;
@@ -241,7 +242,7 @@ int main()
                     octree.insert(i, positionVec, ballRadius);
                 }
 
-                collisionSystem.handleCollisions(entityManager.positions, entityManager.velocities, entityManager.radii, octree);
+                collisionSystem.whenCollisionHappens(entityManager.positions, entityManager.velocities, entityManager.radii, octree);
             }
             accumulator -= fixedTimeStep;
         }

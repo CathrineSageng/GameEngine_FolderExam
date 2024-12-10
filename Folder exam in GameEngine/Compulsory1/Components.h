@@ -21,7 +21,7 @@ struct RadiusComponent
 
 struct BallTrackComponent
 {
-    std::vector<glm::vec3> track;
+    vector<glm::vec3> track;
 };
 
 #endif 

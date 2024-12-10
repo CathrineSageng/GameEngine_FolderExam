@@ -37,15 +37,15 @@ void Octree::insert(int ballIndex, const vector<glm::vec3>& ballPositions, float
     if (isLeaf() && (balls.size() < maxObjects or maxDepth == 0))
     {
         balls.push_back(ballIndex);
-    /*    cout << "Inserted ball " << ballIndex
-            << " at position (" << pos.x << ", " << pos.y << ", " << pos.z << ")"
-            << " into leaf node."<<endl;*/
+        //cout << "Inserted ball " << ballIndex
+        //    << " at position (" << pos.x << ", " << pos.y << ", " << pos.z << ")"
+        //    << " into leaf node."<<endl;
     }
     else
     {
         if (isLeaf() and maxDepth > 0)
         {
-          /*  cout << "Subdividing node:  "<<endl;*/
+           /* cout << "Subdividing node:  "<<endl;*/
             subdivide(ballPositions, ballRadius); 
         }
 
@@ -96,7 +96,7 @@ void Octree::getPotentialCollisions(vector<pair<int, int>>& collisionPairs, cons
         for (int j = i + 1; j < balls.size(); ++j)
         {
             collisionPairs.push_back(std::make_pair(balls[i], balls[j]));
-    /*        cout << "Potential collision between ball " << balls[i]
+       /*     cout << "Potential collision between ball " << balls[i]
                 << " and ball " << balls[j] << endl;*/
         }
     }

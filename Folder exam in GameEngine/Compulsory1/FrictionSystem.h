@@ -3,47 +3,46 @@
 
 #include "Components.h"
 
-class FrictionSystem {
-public:
-    void applyFriction(std::vector<VelocityComponent>& velocities,
-        const std::vector<PositionComponent>& positions,
-        float deltaTime, float normalFriction, float highFriction,
-        float frictionAreaXMin, float frictionAreaXMax,
-        float frictionAreaYMin, float frictionAreaYMax) {
-        const float gravity = 9.81f;  // Gravitational force
-        const float minSpeed = 0.5f;  // Prevent balls from fully stopping
+class FrictionSystem 
+{
+    public:
+        void applyFriction(vector<VelocityComponent>& velocities,
+            const vector<PositionComponent>& positions,
+            float deltaTime, float normalFriction, float highFriction,
+            float frictionAreaXMin, float frictionAreaXMax,
+            float frictionAreaYMin, float frictionAreaYMax) 
+            {
+                const float gravity = 9.81f;
+                  
+                for (size_t i = 0; i < velocities.size(); ++i) 
+                {
+                    float speed = glm::length(velocities[i].velocity);
+                    glm::vec3 direction = glm::normalize(velocities[i].velocity);
 
-        for (size_t i = 0; i < velocities.size(); ++i) {
-            float speed = glm::length(velocities[i].velocity);
-            glm::vec3 direction = glm::normalize(velocities[i].velocity);
+                    float frictionCoefficient = normalFriction;
+                    if (positions[i].position.x >= frictionAreaXMin && positions[i].position.x <= frictionAreaXMax &&
+                        positions[i].position.y >= frictionAreaYMin && positions[i].position.y <= frictionAreaYMax) 
+                    {
+                        frictionCoefficient = highFriction;
+                    }
 
-            // Determine if the ball is in the high-friction area
-            float frictionCoefficient = normalFriction;
-            if (positions[i].position.x >= frictionAreaXMin && positions[i].position.x <= frictionAreaXMax &&
-                positions[i].position.y >= frictionAreaYMin && positions[i].position.y <= frictionAreaYMax) {
-                frictionCoefficient = highFriction;
-            }
+                    float normalForce = gravity;
+                    float frictionForce = frictionCoefficient * normalForce;
 
-            // Compute friction force
-            float normalForce = gravity;
-            float frictionForce = frictionCoefficient * normalForce;
+                    float newSpeed = speed - frictionForce * deltaTime;
 
-            // Reduce speed due to friction
-            float newSpeed = speed - frictionForce * deltaTime;
+                    const float minSpeed = 0.5f;
+                    if (newSpeed < minSpeed) 
+                    {
+                        newSpeed = minSpeed;
+                    }
 
-            // Ensure the ball doesn't fully stop
-            if (newSpeed < minSpeed) {
-                newSpeed = minSpeed;
-            }
-
-            // Apply the new velocity
-            if (speed > 0.0f) { // Avoid NaN errors if direction is zero
-                velocities[i].velocity = direction * newSpeed;
-            }
+                    if (speed > 0.0f)
+                    { 
+                        velocities[i].velocity = direction * newSpeed;
+                    }
+                }
         }
-    }
-
-
 };
 
 #endif // FRICTIONSYSTEM_H

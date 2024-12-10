@@ -5,23 +5,24 @@
 #include "Components.h"
 #include <glm/glm.hpp>
 
-class BallTrackingSystem {
-public:
-    void update(std::vector<PositionComponent>& positions,
-        std::vector<BallTrackComponent>& tracks,
-        float trackThreshold = 0.01f)
-    {
-        for (size_t i = 0; i < positions.size(); ++i) 
+class BallTrackingSystem 
+{
+    public:
+        void update(vector<PositionComponent>& positions,
+            vector<BallTrackComponent>& tracks,
+            float trackThreshold = 0.01f)
         {
-            glm::vec3& position = positions[i].position;
-            BallTrackComponent& track = tracks[i];
-
-            if (track.track.empty() || glm::distance(position, track.track.back()) > trackThreshold) 
+            for (size_t i = 0; i < positions.size(); ++i) 
             {
-                track.track.push_back(position); // Add position to the track
+                glm::vec3& position = positions[i].position;
+                BallTrackComponent& track = tracks[i];
+
+                if (track.track.empty() || glm::distance(position, track.track.back()) > trackThreshold) 
+                {
+                    track.track.push_back(position); 
+                }
             }
         }
-    }
 };
 
 #endif

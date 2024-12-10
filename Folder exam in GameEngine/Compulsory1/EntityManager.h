@@ -22,7 +22,7 @@ public:
         positions.push_back({ position });
         velocities.push_back({ velocity });
         radii.push_back({ radius });
-        tracks.push_back({ std::vector<glm::vec3>() });
+        tracks.push_back({ vector<glm::vec3>() });
 
         return id;
     }

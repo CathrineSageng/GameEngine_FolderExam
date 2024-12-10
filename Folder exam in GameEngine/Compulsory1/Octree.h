@@ -10,7 +10,7 @@ using namespace std;
 class Octree
 {
 public: 
-    Octree(glm::vec3 minBounds, glm::vec3 maxBounds, int depth = 0, int maxDepth = 2, int maxObjects = 4);
+    Octree(glm::vec3 minBounds, glm::vec3 maxBounds, int depth = 0, int maxDepth = 4, int maxObjects = 4);
 
     ~Octree();
 
