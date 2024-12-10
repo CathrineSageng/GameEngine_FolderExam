@@ -7,21 +7,22 @@
 
 using namespace std; 
 
-class ParticleSystem {
-public:
-    ParticleSystem(int maxParticles);
+class ParticleSystem 
+{
+    public:
+        ParticleSystem(int maxParticles);
 
-    void emitter();
-    void updateParticles(float deltaTime, Surface& surface); 
-    void renderParticles(Shader& shader, glm::mat4& projection, glm::mat4& view); 
+        void emitter();
+        void updateParticles(float deltaTime, Surface& surface); 
+        void renderParticles(Shader& shader, glm::mat4& projection, glm::mat4& view); 
 
-    int totalAmountOfParticles;
+        int totalAmountOfParticles;
 
-    vector<glm::vec3> position; 
-    vector<glm::vec3> velocity;
-    vector<bool> activeParticles; 
+        vector<glm::vec3> position; 
+        vector<glm::vec3> velocity;
+        vector<bool> activeParticles; 
 
-    int howManyParticlesAreActive; 
+        int howManyParticlesAreActive; 
 };
 
 #endif

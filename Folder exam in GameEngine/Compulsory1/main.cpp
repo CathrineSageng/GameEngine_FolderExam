@@ -140,8 +140,10 @@ int main()
  
     vector<Ball> balls;
     for (size_t i = 0; i < entityManager.positions.size(); ++i) {
-        balls.push_back(Ball(ballRadius, 30, 30, glm::vec3(1.0f, 1.0f, 1.0f))); 
+        float radius = entityManager.radii[i].radius; 
+        balls.push_back(Ball(radius, 30, 30, glm::vec3(1.0f, 1.0f, 1.0f)));
     }
+
 
     int pointsOnTheSurface = 20;
 
@@ -227,7 +229,7 @@ int main()
         {
             if (ballsMoving)
             {
-               /* cout << "--- Updating Physics ---" << endl;*/
+              /*  cout << "--- Updating Physics ---" << endl;*/
                 positionSystem.update(entityManager.positions,
                     entityManager.velocities,
                     fixedTimeStep,

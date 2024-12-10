@@ -45,5 +45,5 @@ class FrictionSystem
         }
 };
 
-#endif // FRICTIONSYSTEM_H
+#endif 
 
